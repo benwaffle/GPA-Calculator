@@ -20,16 +20,19 @@ public class GradesAppMain {
 	public static final String GRADES_URL = "https://ps01.bergen.org/guardian/home.html";
 	final static String serviceName="PS+Parent+Portal", credentialType="User+Id+and+Password+Credential", pcasServerUrl="/";
 	static String pstoken, contextData;
+	public static final boolean DEBUG = true;
 
 	public static float[] STUDENT_GPAS;
 
 	public static void main(String[] args) throws Exception {
-		System.out.println("Program running");
+		if(DEBUG) System.out.println("Program running. Creating login GUI");
 
 		final GradesAppLoginGUI logingui = new GradesAppLoginGUI();
+		if(DEBUG) System.out.println("created login GUI");
 		logingui.loginBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if(DEBUG) System.out.println("login button clicked");
 				logingui.frame.setVisible(false);
 				parsePSPage(loginToPS(
 						logingui.unameField.getText(), 
@@ -38,18 +41,21 @@ public class GradesAppMain {
 			}
 		});
 		logingui.frame.setVisible(true);
+		if(DEBUG) System.out.println("displayed login GUI");
 	}
 
 	static Document loginToPS(String username, String password){
+		if(DEBUG) System.out.println("loginToPS() called");
 		try {
 			//get login page
-			System.out.println("getting login page");
+			if(DEBUG) System.out.println("getting login page");
 			Connection.Response resp = Jsoup.connect(HOME_URL).method(Connection.Method.GET).execute();
+			if(DEBUG) System.out.println("got login page");
 			//get some hidden login values
 			pstoken = resp.parse().body().getElementsByAttributeValue("name", "pstoken").val();
 			contextData = resp.parse().body().getElementsByAttributeValue("name", "contextData").val();
 			//login to form
-			System.out.println("sending login form now");
+			if(DEBUG) System.out.println("sending login form now");
 			resp = Jsoup.connect(GRADES_URL)
 					.data("pstoken",pstoken)
 					.data("contextData",contextData)
@@ -63,9 +69,10 @@ public class GradesAppMain {
 					.userAgent("Mozilla")
 					.method(Connection.Method.POST)
 					.execute();
-			System.out.println("calling parseAndCalcGPA()");
+			if(DEBUG) System.out.println("got grades page, returning it");
 			return resp.parse();
 		} catch (Exception e) {
+			if(DEBUG) System.out.println("error connecting to powerschool");
 			JOptionPane.showMessageDialog(null, "An error has occured connecting to Powerschool.\nYou might need to sign in to the BCA wifi network.");
 			e.printStackTrace();
 		}
@@ -73,7 +80,7 @@ public class GradesAppMain {
 	}
 
 	static void parsePSPage(Document gradespage){
-		System.out.println("parsing GPA now...");
+		if(DEBUG) System.out.println("parsePSPage called");
 
 		if(gradespage == null) { JOptionPane.showMessageDialog(null, "An error has occurred"); System.exit(1);}
 
@@ -86,10 +93,12 @@ public class GradesAppMain {
 		final ArrayList<Integer> studentClassMods = new ArrayList<Integer>();
 		final ArrayList<float[]> studentClassGPAs = new ArrayList<float[]>();
 
+		if(DEBUG) System.out.println("getting grades");
 		//grades table
 		Elements rows = gradespage.select(
 				"html > body > div#container > div#content > div#content-main " +
 				"> div#quickLookup > table.grid:first-child > tbody > tr.center");
+		if(DEBUG) System.out.println("looping through classes");
 		for(int i=2;i<rows.size()-1;i++){	//for each class, ignoring unrelated rows in the table
 			Element curClass = rows.get(i);	//current class element
 			String rawClassName = curClass.children().get(11).text();
@@ -108,31 +117,34 @@ public class GradesAppMain {
 			studentClassGPAs.add(tempGpaArr);
 
 			//DEBUG
-			//			System.out.println("\nclass: " + curClassName);
-			//			System.out.println("mods: "  + curClassMods);
-			//			for(float gpa:tempGpaArr) System.out.println(gpa);
+			//System.out.println("\nclass: " + curClassName);
+			//System.out.println("mods: "  + curClassMods);
+			//for(float gpa:tempGpaArr) System.out.println(gpa);
 		}
 
+		if(DEBUG) System.out.println("creating chooserGUI");
 		final GradesAppProjElecChooser chooserGui = new GradesAppProjElecChooser(studentClasses.toArray(new String[] {}));
 		chooserGui.setVisible(true);
 		chooserGui.btnDone.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if(DEBUG) System.out.println("chooserGUI done button clicked");
 				chooserGui.setVisible(false);
 				for(int i=0;i<chooserGui.table.getColumnCount();i++) {
 					//2 mods/1 credit
 					if((boolean)chooserGui.table.getValueAt(i, 1)) {
 						if(chooserGui.table.getValueAt(i, 0).equals("Biotech Lab"));// studentClassMods.set(i, );
 						else studentClassMods.set(i, 2);
-
 					}
-					calcAndDisplayGpa(studentClasses, studentClassMods, studentClassGPAs);
 				}
+				calcAndDisplayGpa(studentClasses, studentClassMods, studentClassGPAs);
 			}
 		});
 
 	}
 	static void calcAndDisplayGpa(ArrayList<String> studentClasses, ArrayList<Integer> studentClassMods, ArrayList<float[]> studentClassGPAs) {
+		if(DEBUG) System.out.println("calcAndDisplayGpa() called");
+		
 		/*
 		 * GPA formula with BCA mods:
 		 * gpa = sum(mods/2 * GPA)
@@ -142,6 +154,7 @@ public class GradesAppMain {
 		float t1gpa=0, t2gpa=0, t3gpa=0, ygpa=0;
 		float numerator, denominator; //numerator and denominator of formula
 
+		if(DEBUG) System.out.println("calculating trimester GPAs");
 		//trimesters
 		for(int tri=0;tri<3;tri++) {
 			numerator=0;
@@ -156,6 +169,8 @@ public class GradesAppMain {
 			else if(tri==1) t2gpa = numerator/denominator;
 			else if(tri==2) t3gpa = numerator/denominator;
 		}
+		
+		if(DEBUG) System.out.println("calculating year gpa");
 		//year
 		numerator = 0; denominator = 0;
 		for(int classIndex=0;classIndex<studentClasses.size();classIndex++) { //for each class
@@ -170,7 +185,9 @@ public class GradesAppMain {
 
 		STUDENT_GPAS = new float[] {t1gpa, t2gpa, t3gpa, ygpa};
 
+		if(DEBUG) System.out.println("creating GPA display GUI");
 		GradesAppMainGUI displayGradesGui = new GradesAppMainGUI(STUDENT_GPAS);
+		if(DEBUG) System.out.println("created GUI, setting visible");
 		displayGradesGui.frame.setVisible(true);
 
 	}
