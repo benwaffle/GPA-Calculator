@@ -5,9 +5,6 @@
 
 import java.awt.event.*;
 import java.util.ArrayList;
-
-import javax.crypto.*;
-import javax.crypto.spec.*;
 import javax.swing.JOptionPane;
 
 import org.jsoup.*;
@@ -16,12 +13,10 @@ import org.jsoup.select.Elements;
 
 public class GradesAppMain {
 	//login data
-	public static final String HOME_URL = "https://ps01.bergen.org/public/home.html";
-	public static final String GRADES_URL = "https://ps01.bergen.org/guardian/home.html";
-	final static String serviceName="PS+Parent+Portal", credentialType="User+Id+and+Password+Credential", pcasServerUrl="/";
+	static final String HOME_URL = "https://ps01.bergen.org/public/home.html", GRADES_URL = "https://ps01.bergen.org/guardian/home.html";
+	static final String serviceName="PS+Parent+Portal", credentialType="User+Id+and+Password+Credential", pcasServerUrl="/";
 	static String pstoken, contextData;
-	public static final boolean DEBUG = true;
-
+	static final boolean DEBUG = true;
 	public static float[] STUDENT_GPAS;
 
 	public static void main(String[] args) throws Exception {
@@ -64,7 +59,7 @@ public class GradesAppMain {
 					.data("credentialType",credentialType)
 					.data("account",username)
 					.data("ldappassword",password)
-					.data("pw",sStringToHMACMD5(contextData, Base64.encodeBytes(MD5("password").getBytes())))
+					.data("pw",Base64.sStringToHMACMD5(contextData, Base64.encodeBytes(Base64.MD5("password").getBytes())))
 					.cookies(resp.cookies())
 					.userAgent("Mozilla")
 					.method(Connection.Method.POST)
@@ -249,45 +244,5 @@ public class GradesAppMain {
 		default:
 			return (float)-1;
 		}
-	}
-	//just some necessary functions to get login form data
-	//not made by me
-	public static String sStringToHMACMD5(String s, String keyString)
-	{
-		String sEncodedString = null;
-		try
-		{
-			SecretKeySpec key = new SecretKeySpec((keyString).getBytes("UTF-8"), "HmacMD5");
-			Mac mac = Mac.getInstance("HmacMD5");
-			mac.init(key);
-
-			byte[] bytes = mac.doFinal(s.getBytes("ASCII"));
-
-			StringBuffer hash = new StringBuffer();
-
-			for (int i=0; i<bytes.length; i++) {
-				String hex = Integer.toHexString(0xFF &  bytes[i]);
-				if (hex.length() == 1) {
-					hash.append('0');
-				}
-				hash.append(hex);
-			}
-			sEncodedString = hash.toString();
-		}
-		catch (Exception e) {e.printStackTrace();}
-		return sEncodedString ;
-	}
-	public static String MD5(String md5) {
-		try {
-			java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
-			byte[] array = md.digest(md5.getBytes());
-			StringBuffer sb = new StringBuffer();
-			for (int i = 0; i < array.length; ++i) {
-				sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1,3));
-			}
-			return sb.toString();
-		} catch (java.security.NoSuchAlgorithmException e) {
-		}
-		return null;
 	}
 }
