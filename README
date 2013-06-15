@@ -2,8 +2,11 @@ GPA Calculator by Ben Iofel
 ===========================
 Never type out your grades and mods again! Just login through this program to Powerschool and you will see your GPA!
 
-Changlog
+Changelog
 ========
+V0.3
++ fixed duplicate window bug
++ added debug statements
 V0.2
 + Added code to use default system look and feel
 + fixed a discovered bug with the year GPA
