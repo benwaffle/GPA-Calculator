@@ -4,6 +4,8 @@ Never type out your grades and mods again! Just login through this program to Po
 
 Changelog
 ========
+v0.4
++ year GPA is hopefully correct now
 V0.3
 + fixed duplicate window bug
 + added debug statements
