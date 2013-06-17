@@ -1,6 +1,7 @@
 /*
  * See LICENSE for license.
- * GPA Calculator v0.2 
+ * GPA Calculator v0.4
+ * Copyright (c) 2013 Ben Iofel
  */
 
 import java.awt.event.*;
@@ -16,7 +17,7 @@ public class GradesAppMain {
 	static final String HOME_URL = "https://ps01.bergen.org/public/home.html", GRADES_URL = "https://ps01.bergen.org/guardian/home.html";
 	static final String serviceName="PS+Parent+Portal", credentialType="User+Id+and+Password+Credential", pcasServerUrl="/";
 	static String pstoken, contextData;
-	static final boolean DEBUG = true;
+	static final boolean DEBUG = false;
 	public static float[] STUDENT_GPAS;
 
 	public static void main(String[] args) throws Exception {
@@ -77,8 +78,6 @@ public class GradesAppMain {
 	static void parsePSPage(Document gradespage){
 		if(DEBUG) System.out.println("parsePSPage called");
 
-		if(gradespage == null) { JOptionPane.showMessageDialog(null, "An error has occurred"); System.exit(1);}
-
 		if(gradespage.select("div.feedback-alert").hasText()) {
 			JOptionPane.showMessageDialog(null, "Wrong password. Please try again");
 			System.exit(0);
@@ -102,10 +101,21 @@ public class GradesAppMain {
 			String curClassName = rawClassName.substring(0, rawClassName.indexOf((char)160));	//name
 			int curClassMods = getModsFromString(curClass.children().get(0).text());			//mods
 			float[] tempGpaArr = new float[4];
-			tempGpaArr[0]=letterGradeToGPA(curClass.children().get(12).text()); //t1
-			tempGpaArr[1]=letterGradeToGPA(curClass.children().get(13).text()); //t2
-			tempGpaArr[2]=letterGradeToGPA(curClass.children().get(14).text()); //t3
-			tempGpaArr[3]=letterGradeToGPA(curClass.children().get(15).text()); //year
+			tempGpaArr[0]=gradeToGPA(curClass.children().get(12).text(),-1); //t1
+			tempGpaArr[1]=gradeToGPA(curClass.children().get(13).text(),-1); //t2
+			tempGpaArr[2]=gradeToGPA(curClass.children().get(14).text(),-1); //t3
+
+			float yearPcntAvg = 0;
+			int trisWithGrades = 0;
+
+			if(gradeToGPA(curClass.children().get(15).text(), -1) != -1) tempGpaArr[3] = gradeToGPA(curClass.children().get(15).text(), -1);
+			else {
+				for(int tri=1;tri<=3;tri++) if(gradeToGPA(curClass.children().get(11+tri).text(), -1) != -1) {
+					yearPcntAvg += Float.parseFloat(curClass.children().get(11+tri).text().split(" ")[1]);
+					trisWithGrades++;
+				}
+				tempGpaArr[3]=gradeToGPA(null, yearPcntAvg/trisWithGrades); //year	
+			}
 
 			studentClasses.add(curClassName);
 			studentClassMods.add(curClassMods);
@@ -125,21 +135,17 @@ public class GradesAppMain {
 			public void actionPerformed(ActionEvent e) {
 				if(DEBUG) System.out.println("chooserGUI done button clicked");
 				chooserGui.setVisible(false);
-				for(int i=0;i<chooserGui.table.getColumnCount();i++) {
-					//2 mods/1 credit
-					if((boolean)chooserGui.table.getValueAt(i, 1)) {
-						if(chooserGui.table.getValueAt(i, 0).equals("Biotech Lab"));// studentClassMods.set(i, );
-						else studentClassMods.set(i, 2);
-					}
+				for(int i=0;i<chooserGui.table.getRowCount();i++) {
+					//2 mods = 1 credit
+					if((boolean)chooserGui.table.getValueAt(i, 1)) studentClassMods.set(i, 2);
 				}
 				calcAndDisplayGpa(studentClasses, studentClassMods, studentClassGPAs);
 			}
 		});
-
 	}
 	static void calcAndDisplayGpa(ArrayList<String> studentClasses, ArrayList<Integer> studentClassMods, ArrayList<float[]> studentClassGPAs) {
 		if(DEBUG) System.out.println("calcAndDisplayGpa() called");
-		
+
 		/*
 		 * GPA formula with BCA mods:
 		 * gpa = sum(mods/2 * GPA)
@@ -164,14 +170,14 @@ public class GradesAppMain {
 			else if(tri==1) t2gpa = numerator/denominator;
 			else if(tri==2) t3gpa = numerator/denominator;
 		}
-		
+
 		if(DEBUG) System.out.println("calculating year gpa");
 		//year
 		numerator = 0; denominator = 0;
 		for(int classIndex=0;classIndex<studentClasses.size();classIndex++) { //for each class
 			for(int tri=0;tri<3;tri++) {	//this is the year GPA, we're counting all trimesters
 				if(studentClassGPAs.get(classIndex)[tri] != -1) {
-					numerator += studentClassMods.get(classIndex)/2 * studentClassGPAs.get(classIndex)[tri];
+					numerator += studentClassMods.get(classIndex)/2 * studentClassGPAs.get(classIndex)[3];
 					denominator += studentClassMods.get(classIndex)/2;
 				}
 			}
@@ -204,44 +210,58 @@ public class GradesAppMain {
 		}
 		return totalMods;
 	}
-	static int stringRangeToLen(String range){		//form: a-b, where a<b OR a
+	static int stringRangeToLen(String range){		//form: 'a-b' or 'a'
 		String from="",to="";
-		int dashloc = range.indexOf('-');
+		int dashloc = range.indexOf('-'), answer;
 		if(dashloc != -1){
 			from=range.substring(0, range.indexOf('-'));
 			to=range.substring(range.indexOf('-')+1);
-		}
-		int answer;
-		if(dashloc == -1) answer= 1;	//no dash
-		else answer= Integer.parseInt(to)-Integer.parseInt(from)+1;
+			answer= Integer.parseInt(to)-Integer.parseInt(from)+1;
+		} else answer = 1;
 		return answer;
 	}
-	static float letterGradeToGPA(String grade){
-		if(grade.indexOf(' ') != -1) grade = grade.substring(0, grade.indexOf(' '));
-		switch(grade){
-		case "A":
-			return (float)4.0;
-		case "A-":
-			return (float)3.8;
-		case "B+":
-			return (float)3.33;
-		case "B":
-			return (float)3.0;
-		case "B-":
-			return (float)2.8;
-		case "C+":
-			return (float)2.33;
-		case "C":
-			return (float)2.0;
-		case "C-":
-			return (float)1.8;
-		case "D+":
-			return (float)1.33;
-		case "D":
-			return (float)1.0;
-		case "F":
-			return (float)0.0;
-		default:
+	static float gradeToGPA(String letterGrade, float numGrade){
+		if(letterGrade == null && numGrade != -1) { 	//number -> gpa
+			if(numGrade >= 92.5) return (float)4.0;	//A
+			else if(numGrade >= 90) return (float)3.8; //A-
+			else if(numGrade >= 87.5) return (float)3.33; //B+
+			else if(numGrade >= 82.5) return (float)3.0; //B
+			else if(numGrade >= 80) return (float)2.8; //B-
+			else if(numGrade >= 77.5) return (float)2.33; //C+
+			else if(numGrade >= 72.5) return (float)2.0; //C
+			else if(numGrade >= 70) return (float)1.8; //C-
+			else if(numGrade >= 67.5) return (float)1.33; //D+
+			else if(numGrade >= 60) return (float)1.0; //D
+			else return (float)0.0; //F
+		} else if(letterGrade != null && numGrade == -1) { //letter -> gpa
+			if(letterGrade.indexOf(' ') != -1) letterGrade = letterGrade.substring(0, letterGrade.indexOf(' '));
+			switch(letterGrade){
+			case "A":
+				return (float)4.0;
+			case "A-":
+				return (float)3.8;
+			case "B+":
+				return (float)3.33;
+			case "B":
+				return (float)3.0;
+			case "B-":
+				return (float)2.8;
+			case "C+":
+				return (float)2.33;
+			case "C":
+				return (float)2.0;
+			case "C-":
+				return (float)1.8;
+			case "D+":
+				return (float)1.33;
+			case "D":
+				return (float)1.0;
+			case "F":
+				return (float)0.0;
+			default:
+				return (float)-1;
+			}
+		} else {
 			return (float)-1;
 		}
 	}

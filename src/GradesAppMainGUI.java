@@ -27,7 +27,7 @@ public class GradesAppMainGUI {
 	 */
 	public GradesAppMainGUI(float[] gpas) {
 		if(gpas.length != 4) {
-			System.err.println("error in GradesAppMainGUI. gpas[] is not of length 4");
+			System.out.println("error in GradesAppMainGUI. gpas[] is not of length 4");
 			System.exit(1);
 		}
 		initialize(gpas[0],gpas[1],gpas[2],gpas[3]);
@@ -51,11 +51,11 @@ public class GradesAppMainGUI {
 		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		tabbedPane.setBounds(0, 0, 517, 291);
-		tabbedPane.setBackground(UIManager.getColor("TabbedPane.background"));
+//		tabbedPane.setBackground(UIManager.getColor("TabbedPane.background"));
 		frame.getContentPane().add(tabbedPane);
 		
 		JPanel panel = new JPanel();
-		panel.setBackground(UIManager.getColor("TabbedPane.background"));
+//		panel.setBackground(UIManager.getColor("TabbedPane.background"));
 		panel.setBorder(null);
 		tabbedPane.addTab("Tri 1", null, panel, null);
 		panel.setLayout(null);
@@ -73,7 +73,7 @@ public class GradesAppMainGUI {
 		tab1gpaval.setHorizontalAlignment(SwingConstants.CENTER);
 		
 		JPanel panel_1 = new JPanel();
-		panel_1.setBackground(UIManager.getColor("TabbedPane.background"));
+//		panel_1.setBackground(UIManager.getColor("TabbedPane.background"));
 		panel_1.setBorder(null);
 		tabbedPane.addTab("Tri 2", null, panel_1, null);
 		panel_1.setLayout(null);
@@ -109,7 +109,7 @@ public class GradesAppMainGUI {
 		panel_2.add(tab3gpaval);
 		
 		JPanel panel_3 = new JPanel();
-		panel_3.setBackground(UIManager.getColor("TabbedPane.background"));
+//		panel_3.setBackground(UIManager.getColor("TabbedPane.background"));
 		panel_3.setBorder(null);
 		tabbedPane.addTab("Total", null, panel_3, null);
 		panel_3.setLayout(null);
