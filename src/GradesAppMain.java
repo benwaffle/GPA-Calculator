@@ -17,7 +17,7 @@ public class GradesAppMain {
 	static final String HOME_URL = "https://ps01.bergen.org/public/home.html", GRADES_URL = "https://ps01.bergen.org/guardian/home.html";
 	static final String serviceName="PS+Parent+Portal", credentialType="User+Id+and+Password+Credential", pcasServerUrl="/";
 	static String pstoken, contextData;
-	static final boolean DEBUG = false;
+	static final boolean DEBUG = true;
 	public static float[] STUDENT_GPAS;
 
 	public static void main(String[] args) throws Exception {
@@ -174,12 +174,10 @@ public class GradesAppMain {
 		if(DEBUG) System.out.println("calculating year gpa");
 		//year
 		numerator = 0; denominator = 0;
-		for(int classIndex=0;classIndex<studentClasses.size();classIndex++) { //for each class
-			for(int tri=0;tri<3;tri++) {	//this is the year GPA, we're counting all trimesters
-				if(studentClassGPAs.get(classIndex)[tri] != -1) {
-					numerator += studentClassMods.get(classIndex)/2 * studentClassGPAs.get(classIndex)[3];
-					denominator += studentClassMods.get(classIndex)/2;
-				}
+		for(int classIndex=0;classIndex<studentClasses.size();classIndex++) for(int tri=0;tri<3;tri++) {
+			if(studentClassGPAs.get(classIndex)[tri] != -1) {
+				numerator += studentClassMods.get(classIndex)/2 * studentClassGPAs.get(classIndex)[3];
+				denominator += studentClassMods.get(classIndex)/2;
 			}
 		}
 		ygpa = numerator/denominator;
@@ -235,33 +233,20 @@ public class GradesAppMain {
 			else return (float)0.0; //F
 		} else if(letterGrade != null && numGrade == -1) { //letter -> gpa
 			if(letterGrade.indexOf(' ') != -1) letterGrade = letterGrade.substring(0, letterGrade.indexOf(' '));
-			switch(letterGrade){
-			case "A":
-				return (float)4.0;
-			case "A-":
-				return (float)3.8;
-			case "B+":
-				return (float)3.33;
-			case "B":
-				return (float)3.0;
-			case "B-":
-				return (float)2.8;
-			case "C+":
-				return (float)2.33;
-			case "C":
-				return (float)2.0;
-			case "C-":
-				return (float)1.8;
-			case "D+":
-				return (float)1.33;
-			case "D":
-				return (float)1.0;
-			case "F":
-				return (float)0.0;
-			default:
-				return (float)-1;
-			}
+			if(letterGrade.equals("A")) return (float)4.0;
+			else if(letterGrade.equals("A-")) return (float)3.8;
+			else if(letterGrade.equals("B+")) return (float)3.33;
+			else if(letterGrade.equals("B")) return (float)3.0;
+			else if(letterGrade.equals("B-")) return (float)2.8;
+			else if(letterGrade.equals("C+")) return (float)2.33;
+			else if(letterGrade.equals("C")) return (float)2.0;
+			else if(letterGrade.equals("C-")) return (float)1.8;
+			else if(letterGrade.equals("D+")) return (float)1.33;
+			else if(letterGrade.equals("D")) return (float)1.0;
+			else if(letterGrade.equals("F")) return (float)0.0;
+			else return (float)-1;
 		} else {
+			System.out.println("improper usage of gradeToGPA() function");
 			return (float)-1;
 		}
 	}

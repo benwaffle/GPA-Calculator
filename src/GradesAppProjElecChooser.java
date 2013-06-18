@@ -1,4 +1,7 @@
 import java.awt.EventQueue;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
@@ -39,6 +42,8 @@ public class GradesAppProjElecChooser {
 		}
 
 		//gui
+		Rectangle scr = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+		
 		try {
 		    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
@@ -46,7 +51,7 @@ public class GradesAppProjElecChooser {
 		}
 		
 		frame = new JFrame();
-		frame.setBounds(400, 400, 450, 300);
+		frame.setBounds(scr.width/2-450/2, scr.height/2-300/2, 450, 300);
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 

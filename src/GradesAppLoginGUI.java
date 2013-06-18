@@ -1,4 +1,7 @@
 import java.awt.EventQueue;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+
 import javax.swing.*;
 
 public class GradesAppLoginGUI {
@@ -44,9 +47,11 @@ public class GradesAppLoginGUI {
 		    e.printStackTrace();
 		}
 		
+		Rectangle scr = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+		
 		frame = new JFrame();
 		frame.setResizable(false);
-		frame.setBounds(100, 100, 270, 174);
+		frame.setBounds(scr.width/2 - 270/2, scr.height/2 - 174/2, 270, 174);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
