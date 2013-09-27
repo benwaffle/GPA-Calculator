@@ -1,5 +1,4 @@
 /*
- * See LICENSE for license.
  * GPA Calculator v0.4
  * Copyright (c) 2013 Ben Iofel
  */
@@ -22,7 +21,6 @@ public class GradesAppMain {
 
 	public static void main(String[] args) throws Exception {
 		if(DEBUG) System.out.println("Program running. Creating login GUI");
-
 		final GradesAppLoginGUI logingui = new GradesAppLoginGUI();
 		if(DEBUG) System.out.println("created login GUI");
 		logingui.loginBtn.addActionListener(new ActionListener() {
@@ -71,6 +69,7 @@ public class GradesAppMain {
 			if(DEBUG) System.out.println("error connecting to powerschool");
 			JOptionPane.showMessageDialog(null, "An error has occured connecting to Powerschool.\nYou might need to sign in to the BCA wifi network.");
 			e.printStackTrace();
+			System.exit(0);
 		}
 		return null;
 	}
